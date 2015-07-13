@@ -1,25 +1,23 @@
 import os
 import subprocess
-import time
 import re
 
 class audio_manager():
-    def split_wav_file(self, path, number_of_parts):
+    def split_wav_file(self, a_path, number_of_parts):
         '''
             Split a wave file in number_of_parts parts.
 
             Args;
-                path(string, optional): full path of the wave file.
+                a_path(string, optional): full path of the wave file.
 
             Returns;
                 string containing the folder with the split audio files.
         '''
-        if path == None or path == '' or path.endswith('.wav'):
+        if a_path == None or a_path == '' or a_path.endswith('.wav'):
             raise Exception('Invalid file.')
 
         stat_process = None
-        stat_command = 'sox {0} -n stat'.format(path)
-        length_re = re.compile('Length (seconds):(.+)\n')
+        stat_command = 'sox {0} -n stat'.format(a_path)
         length = -1
         stat_output = ''
 
@@ -28,8 +26,7 @@ class audio_manager():
             stat_error, stat_output = stat_process.communicate()
 
             if stat_output is not None:
-                #TODO: fix the regular expression search pattern length_re
-                length = float(length_re.search(stat_output).strip())
+                length = float(re.findall("\d+.\d+", stat_output.split('\r\n')[1])[0])
 
         except Exception, e:
             print 'Read failed. Reason: ' + unicode(e.message)
@@ -41,24 +38,23 @@ class audio_manager():
         trim_error = ''
         trim_output = ''
 
-        #TODO: add the files to a subfolder.
         if length > 0:
-            factor = int(length)/number_of_parts
-            for i in range(0, number_of_parts):
-                out = os.basename(path).split('.')[0] + '_' + str(i) + '.wav'
-                trim_command = 'sox {0} {1} trim {2} {3}'.format(path, out, str(i*factor), str(((i+1)*factor) - 0.001))
+            offset = length/number_of_parts
+            out = os.path.basename(a_path)
+            folder_name = out.split('.')[0]
 
-                try:
-                    trim_process = subprocess.Popen(trim_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-                    trim_output, trim_error = trim_process.communicate()
+            if not os.path.isdir(folder_name):
+                os.makedirs(folder_name)
+            trim_command = 'sox {0} {1} trim {2} {3} : newfile : restart'.format(a_path, os.path.join(folder_name, out), '0', str(offset))
 
-                except Exception, e:
-                    print 'Split failed. Reason: ' + unicode(e.message)
+            try:
+                trim_process = subprocess.Popen(trim_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                trim_output, trim_error = trim_process.communicate()
 
-                if trim_process != None:
-                    trim_process.terminate()
-                    trim_process = None
-                    trim_error = ''
-                    trim_output = ''
+            except Exception, e:
+                print 'Split failed. Reason: ' + unicode(e.message)
 
-        return os.path.join(os.getcwd())
+            if trim_process != None:
+                trim_process.terminate()
+
+        return os.path.join(os.getcwd(), folder_name)

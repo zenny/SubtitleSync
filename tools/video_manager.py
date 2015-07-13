@@ -29,7 +29,7 @@ class video_manager():
             self.video_path = video
 
         process = None
-        audio_filename = 'audio_' + str(time.time()) + '.wav'
+        audio_filename = 'audio_' + str(time.time()).replace('.','') + '.wav'
         convert_command = 'ffmpeg -i {0} -ab 160k -ac 2 -ar 44100 -vn {1}'.format(self.video_path, audio_filename)
 
         try:
