@@ -13,7 +13,7 @@ class audio_manager():
             Returns;
                 string containing the folder with the split audio files.
         '''
-        if a_path == None or a_path == '' or a_path.endswith('.wav'):
+        if a_path == None or a_path == '' or not a_path.endswith('.wav'):
             raise Exception('Invalid file.')
 
         stat_process = None
@@ -57,4 +57,5 @@ class audio_manager():
             if trim_process != None:
                 trim_process.terminate()
 
-        return os.path.join(os.getcwd(), folder_name)
+            return os.path.join(os.getcwd(), folder_name)
+        return None
