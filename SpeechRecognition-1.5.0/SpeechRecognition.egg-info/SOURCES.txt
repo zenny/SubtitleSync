@@ -1,0 +1,13 @@
+LICENSE.txt
+MANIFEST.in
+README.rst
+setup.py
+SpeechRecognition.egg-info/.dropbox.attr
+SpeechRecognition.egg-info/PKG-INFO
+SpeechRecognition.egg-info/SOURCES.txt
+SpeechRecognition.egg-info/dependency_links.txt
+SpeechRecognition.egg-info/top_level.txt
+speech_recognition/__init__.py
+speech_recognition/flac-linux-i386
+speech_recognition/flac-mac
+speech_recognition/flac-win32.exe
