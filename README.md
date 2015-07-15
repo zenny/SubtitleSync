@@ -5,3 +5,6 @@ An automatic subtitle synchronizer application built specifically for helping yo
 - python 2.7.8
 - sox (sound exchange). Must add to path.
 - ffmpeg. Must add to path.
+
+#Required environment:
+- Access to internet, uses Google's Web Speech API.
