@@ -24,7 +24,7 @@ audio = v_m.get_audio_from_video()
 
 print audio
 
-folder = a_m.split_wav_file(audio, 100)
+folder = a_m.split_wav_file(audio, 200)
 
 print folder
 
