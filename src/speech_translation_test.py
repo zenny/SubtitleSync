@@ -35,14 +35,14 @@ recognizer = SpeechRecognizer.Recognizer()
 with SpeechRecognizer.WavFile(chosen_file) as source:   # use "teste.wav" as the audio source
     audio = recognizer.record(source)                   # extract audio data from the file
 
-for times in range(0,10):    
+for times in range(0,4):
     try:
         transcription = recognizer.recognize(audio)
         print("Transcription: " + transcription)            # recognize speech using Google Speech Recognition
         break
     except LookupError as error:                            # speech is unintelligible
         print(error.args)
-        if times == 9 :
+        if times == 3 :
             print("Could not understand audio")
             sys.exit(0)
     
