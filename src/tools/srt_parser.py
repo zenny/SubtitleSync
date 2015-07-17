@@ -80,13 +80,13 @@ class srt_parser():
             return self.ms - other.ms
 
         def __add__(self, other):
-            return Timecode(self.ms + other.ms)
+            return srt_parser().Timecode(self.ms + other.ms)
 
         def __sub__(self, other):
-            return Timecode(self.ms - other.ms)
+            return srt_parser().Timecode(self.ms - other.ms)
 
         def __neg__(self):
-            return Timecode(- self.ms)
+            return srt_parser().Timecode(- self.ms)
 
     TC = Timecode  # short alias for Timecode
 
@@ -99,7 +99,7 @@ class srt_parser():
             lines   = block.split('\n')
             TIMECODE_SEP    = re.compile('[ \->]*')
             tc1, tc2= map(self.TC, TIMECODE_SEP.split(lines[1]))
-            txt     = '\r\n'.join(lines[2:])
+            txt     = '\n'.join(lines[2:])
             return (tc1, tc2, txt)
 
         return map(parse_block, 
@@ -109,31 +109,28 @@ class srt_parser():
     def format(self, ls):
         def format_block(no, block):
             tc1, tc2, txt   = block
-            return '\r\n'.join(['%d' % no, '%s --> %s' % (tc1, tc2), txt])
+            return '\n'.join(['%d' % no, '%s --> %s' % (tc1, tc2), txt])
 
-        return '\r\n\r\n'.join(map(format_block, range(1, len(ls)+1), ls))
+        return '\n\n'.join(map(format_block, range(1, len(ls)+1), ls))
 
 
 
     #################################################
     # parsed .srt manipulation
     #################################################
-    
-    @staticmethod
+        
     def shift(self, stream, delta):
         '''
         all timecode +delta
         '''
         return [(tc1+delta, tc2+delta, txt) for (tc1,tc2,txt) in stream]
-
-    @staticmethod
+    
     def concatenate(self, head, tail, tail_shift):
         '''
         Concatnate two srts by shifting the second and append to the first
         '''
         return head + shift(tail, tail_shift)
 
-    @staticmethod
     def split(self, stream, *ts):
         '''
         Split stream into multiple substreams with given lengths
@@ -183,12 +180,12 @@ class srt_parser():
         else:
             infile  = args[0]
             delta   = args[1]
-            print(format(shift(parse(infile), TC(delta))))
+            print(self.format(self.shift(self.parse(infile), self.TC(delta))))
 
 
     def command_run(self, argv):
-        cmds    = {'split': split_cmd, 
-                   'shift': shift_cmd}
+        cmds    = {'split': self.split_cmd, 
+                   'shift': self.shift_cmd}
         if len(argv) > 1 and argv[1] in cmds:
             cmds[argv[1]](*argv[2:])
         else:
@@ -199,4 +196,4 @@ class srt_parser():
 #################################################
             
 if __name__ == '__main__':
-    srt_parser.command_run(argv)
+    srt_parser().command_run(argv)

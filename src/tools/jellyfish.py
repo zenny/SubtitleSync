@@ -1,3 +1,5 @@
+# from https://github.com/jamesturk/jellyfish
+
 import unicodedata
 from collections import defaultdict
 from .compat import _range, _zip_longest, _no_bytes_err
