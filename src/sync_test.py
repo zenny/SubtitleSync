@@ -3,6 +3,7 @@ import tools.jellyfish as jf
 
 # threshold for jaro winkler distance
 jw_threshold = 0.8
+factors = [1, 1.2, 1.5, 2]
 
 # Return 1 if sentences are the same and 0 if they are completely different
 def sentence_distance( str1, str2, jw_threshold ):
@@ -14,13 +15,7 @@ def sentence_distance( str1, str2, jw_threshold ):
     for w1 in list_w1:
         word_dist = map( lambda w2 : jf.jaro_winkler(w1.lower(),w2.lower()), list_w2)        
         val = max(word_dist)
-        length = len(w1)
-        if last_matches == 3:
-            length *= 2
-        if last_matches == 2:
-            length *= 1.5
-        if last_matches == 1:
-            length *= 1.2
+        length = len(w1) * factors[last_matches]
         if val > jw_threshold:
             distance += val * length
             count += length
@@ -69,7 +64,6 @@ for ponctuation in ['!','.','?',';'] :
     sen2 = reduce( lambda a, b: a+b, sen2, [])
     sen2 = filter( lambda a: len(a) > 0, sen2)
 
-        
 #concatenando legendas
 sen3 = map(lambda i : sen2[i] + " " + sen2[i+1], range(0,len(sen2)-1))
 sen2 += sen3
