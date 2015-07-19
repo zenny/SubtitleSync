@@ -28,21 +28,15 @@ class video_manager():
         if video != None and video != '':
             self.video_path = video
 
-        process = None      
+        process = None
         audio_filename = os.path.join('audio_samples', "audio_" + str(time.time()).replace('.','') + '.wav')
         convert_command = "ffmpeg -i \"{0}\" -ab 160k -ac 1 -ar 44100 -vn \"{1}\"".format(self.video_path, audio_filename)
-        
-        print "\n #### Running convert_command ####"
-        print convert_command
-        print ""
-        
+
+        print "\nRunning " + convert_command
+
         try:
             process = subprocess.Popen(convert_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
             output, error = process.communicate()
-
-            #It seems ffmpeg is directing the output to stderr instead of stdout...
-            if error is not None:
-                print 'Convertion failed. Reason: ' + unicode(error)
 
         except Exception, e:
             print 'Exception when converting file. Reason: ' + unicode(e.message)

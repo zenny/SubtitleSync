@@ -1,4 +1,5 @@
 import os
+import sys
 from tools.audio_manager import audio_manager
 from tools.video_manager import video_manager
 
@@ -17,6 +18,7 @@ try:
     print chosen_file
 except:
     print 'Wrong choice'
+    sys.exit(0)
 
 a_m = audio_manager()
 v_m = video_manager(os.path.join('video_samples', unicode(chosen_file)))

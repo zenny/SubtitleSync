@@ -19,9 +19,8 @@ except:
 filename = os.path.join('video_samples', chosen_file)
 print filename
 
-
 strp = srt_parser()
 segments = strp.parse(filename)
 for segment in segments:
-    print segment    
+    print segment
 
