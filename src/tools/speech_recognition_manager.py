@@ -18,7 +18,6 @@ class speech_recognition_manager():
                                                         and so on.
                                                     ]
                 from_lang(string): language of the audio.
-                translated(boolean): if the subtitles are translated.
                 to_lang(string): language of the subtitles, if translated.
 
             Returns:
