@@ -94,9 +94,8 @@ class silence_detector():
             try:
                 process = subprocess.Popen(trim_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
                 output, error = process.communicate()
-                map.append([start, end, '{0}_{1}.wav'.format(os.path.join('audio_samples', 'trimmed', output_filename, output_filename), idx+1)])
+                map.append((start, end, '{0}_{1}.wav'.format(os.path.join('audio_samples', 'trimmed', output_filename, output_filename), idx+1)))
             except Exception, e:
                 print 'Exception when triming file. Reason: ' + unicode(e.message)
 
-        print 'Found ' + str(len(intervals)) + ' possible speeches.'
         return map

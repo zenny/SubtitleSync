@@ -60,6 +60,7 @@ print 'Read ' + str(len(SUBTITLES)) + ' subtitles.'
 print '\nDetecting speech segments...'
 s_d = silence_detector()
 MAP_INTERVALS = s_d.split_on_silence(AUDIO_FILE)
+print 'Found ' + str(len(MAP_INTERVALS)) + ' possible segments.'
 #END
 
 ##########################
@@ -67,9 +68,19 @@ MAP_INTERVALS = s_d.split_on_silence(AUDIO_FILE)
 ##########################
 print '\nTranscripting speech segments...'
 s_r_m = speech_recognition_manager()
-TIMESTAMPED_TEXTS = s_r_m.speech_to_text(MAP_INTERVALS, from_language = 'en', to_language = 'pt')
+TIMESTAMPED_TEXTS = s_r_m.speech_to_text(MAP_INTERVALS)
 print str(len(TIMESTAMPED_TEXTS)) + ' out of ' + str(len(MAP_INTERVALS)) + ' successful transcriptions.'
 for timestamped_text in TIMESTAMPED_TEXTS:
     print timestamped_text
+#END
+
+##########################
+#Translating subtitles
+##########################
+print '\nTranslating subtitles...'
+TRANSLATED_SUBTITLES = s_r_m.translate(SUBTITLES, from_language = 'pt', to_language = 'en')
+print str(len(TRANSLATED_SUBTITLES)) + ' out of ' + str(len(SUBTITLES)) + ' successful translations.'
+for timestamped_sub in TRANSLATED_SUBTITLES:
+    print timestamped_sub
 #END
 
