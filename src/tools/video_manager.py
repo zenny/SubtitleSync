@@ -32,7 +32,7 @@ class video_manager():
         audio_filename = os.path.join('audio_samples', "audio_" + str(time.time()).replace('.','') + '.wav')
         convert_command = "ffmpeg -i \"{0}\" -ab 160k -ac 1 -ar 44100 -vn \"{1}\"".format(self.video_path, audio_filename)
 
-        print "\nRunning " + convert_command
+        print "Running " + convert_command
 
         try:
             process = subprocess.Popen(convert_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)

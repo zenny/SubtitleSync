@@ -2,8 +2,8 @@ import os
 import subprocess
 import re
 
-class silence_detector:
-    def detect_silence(audio_filename, noise_tolerance = 0.12, silence_duration = 0.5, max_duration = None):
+class silence_detector():
+    def detect_silence(self, audio_filename, noise_tolerance = 0.12, silence_duration = 0.5, max_duration = None):
         '''
             Detects periods of silence in the audio file.
 
@@ -24,10 +24,6 @@ class silence_detector:
         process = output = error = None
 
         try:
-            print "\n #### Running convert_command ####"
-            print convert_command
-            print ""
-
             process = subprocess.Popen(convert_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
             output, error = process.communicate()
         except Exception, e:
@@ -61,7 +57,7 @@ class silence_detector:
 
             return filter(lambda a: a[0] + 1e-2 < a[1], zip(start_audio, end_audio))
 
-    def split_on_silence(audio_filename, output_filename = None):
+    def split_on_silence(self, audio_filename, output_filename = None):
         '''
             Create new audio files by removing silences from the original audio file.
 
@@ -70,36 +66,35 @@ class silence_detector:
                 output_filename(string, optional) The prefix name for the output file (should not have extension '.wav').
 
             Returns:
-                number of files created
+                folder with trimmed files
         '''
+
         if audio_filename == None or audio_filename == '' or not audio_filename.endswith('.wav'):
             raise Exception('Invalid file.')
 
         if output_filename is None:
             output_filename = os.path.basename(audio_filename).split('.')[0]
 
-        intervals = detect_silence(audio_filename)
+        if not os.path.isdir(os.path.join('audio_samples', 'trimmed')):
+            os.makedirs(os.path.join('audio_samples', 'trimmed'))
+
+        if not os.path.isdir(os.path.join('audio_samples', 'trimmed', output_filename)):
+            os.makedirs(os.path.join('audio_samples', 'trimmed', output_filename))
+
+        intervals = self.detect_silence(audio_filename)
         for idx in range(0,len(intervals)):
             start = intervals[idx][0]
             end = intervals[idx][1]
             duration = end - start
 
             trim_command = "sox {0} {1}_{2}.wav trim {3} {4}"
-            trim_command = trim_command.format(audio_filename, output_filename, idx+1, start, duration)
+            trim_command = trim_command.format(audio_filename, os.path.join('audio_samples', 'trimmed', output_filename, output_filename), idx+1, start, duration)
 
             try:
-                print "\n #### Running trim_command ####"
-                print trim_command
-                print ""
-
                 process = subprocess.Popen(trim_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
                 output, error = process.communicate()
             except Exception, e:
                 print 'Exception when triming file. Reason: ' + unicode(e.message)
 
-'''
-#testing
-audio_filename = 'audio_samples\\audio_143701482948007.wav'
-out_filename = 'audio_samples\\silence'
-split_on_silence(audio_filename, out_filename)
-'''
+        print 'Found ' + str(len(intervals)) + ' possible speeches.'
+        return os.path.join('audio_samples', 'trimmed', output_filename)
