@@ -82,6 +82,7 @@ class silence_detector():
             os.makedirs(os.path.join('audio_samples', 'trimmed', output_filename))
 
         intervals = self.detect_silence(audio_filename)
+        map = []
         for idx in range(0,len(intervals)):
             start = intervals[idx][0]
             end = intervals[idx][1]
@@ -93,8 +94,9 @@ class silence_detector():
             try:
                 process = subprocess.Popen(trim_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
                 output, error = process.communicate()
+                map.append([start, end, '{0}_{1}.wav'.format(os.path.join('audio_samples', 'trimmed', output_filename, output_filename), idx+1)])
             except Exception, e:
                 print 'Exception when triming file. Reason: ' + unicode(e.message)
 
         print 'Found ' + str(len(intervals)) + ' possible speeches.'
-        return os.path.join('audio_samples', 'trimmed', output_filename)
+        return map

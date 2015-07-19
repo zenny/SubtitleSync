@@ -4,6 +4,7 @@ from tools.audio_manager import audio_manager
 from tools.video_manager import video_manager
 from tools.srt_parser import srt_parser
 from tools.silence_detector import silence_detector
+from tools.speech_recognition_manager import speech_recognition_manager
 
 ##########################
 #Choose video and subtitle
@@ -16,7 +17,7 @@ for v_file in VIDEO_FILES:
     print str(i) + ' - ' + os.path.basename(v_file)
     i += 1
 
-v_choice = raw_input('>')
+v_choice = raw_input('> ')
 
 i = 1
 print '\nSelect one of the available subtitles:\n'
@@ -24,11 +25,13 @@ for s_file in SRT_FILES:
     print str(i) + ' - ' + os.path.basename(s_file)
     i += 1
 
-s_choice = raw_input('>')
+s_choice = raw_input('> ')
 
 CHOSEN_VIDEO = VIDEO_FILES[int(v_choice)-1]
 CHOSEN_SRT = SRT_FILES[int(s_choice)-1]
-if not CHOSEN_VIDEO.endswith('.mp4') or not CHOSEN_SRT.endswith('.srt'):
+if ((not CHOSEN_VIDEO.endswith('.mp4'))
+    and not CHOSEN_VIDEO.endswith('.avi')
+    or not CHOSEN_SRT.endswith('.srt')):
     print 'Invalid choice.'
     sys.exit(0)
 #END
@@ -54,7 +57,19 @@ print 'Read ' + str(len(SUBTITLES)) + ' subtitles.'
 ##########################
 #Splitting audio file on silence
 ##########################
-print '\nDetecting speeches.'
+print '\nDetecting speech segments...'
 s_d = silence_detector()
-SPLIT_AUDIO_FOLDER = s_d.split_on_silence(AUDIO_FILE)
+MAP_INTERVALS = s_d.split_on_silence(AUDIO_FILE)
 #END
+
+##########################
+#Transcripting segments
+##########################
+print '\nTranscripting speech segments...'
+s_r_m = speech_recognition_manager()
+TIMESTAMPED_TEXTS = s_r_m.speech_to_text(MAP_INTERVALS, from_language = 'en', to_language = 'pt')
+print str(len(TIMESTAMPED_TEXTS)) + ' out of ' + str(len(MAP_INTERVALS)) + ' successful transcriptions.'
+for timestamped_text in TIMESTAMPED_TEXTS:
+    print timestamped_text
+#END
+
