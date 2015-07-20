@@ -96,7 +96,7 @@ for timestamped_sub in TRANSLATED_SUBTITLES:
 ####################################################
 print '\nMatching subtitles and transcriptions...'
 m_m = matching_manager()
-CORRECTED_TIME_SUBTITLES = m_m.match_subs_trans(TRANSLATED_SUBTITLES, TIMESTAMPED_TRANSCRIPTIONS)
+CORRECTED_TIME_SUBTITLES = m_m.match_subs_trans(TRANSLATED_SUBTITLES, TIMESTAMPED_TRANSCRIPTIONS, SUBTITLES)
 #END
 
 ####################################################
@@ -104,12 +104,6 @@ CORRECTED_TIME_SUBTITLES = m_m.match_subs_trans(TRANSLATED_SUBTITLES, TIMESTAMPE
 ####################################################
 print '\nWriting synchronized subtile in file...'
 # get original subtitle text
-for idx in range(len(SUBTITLES)):
-    time_s = CORRECTED_TIME_SUBTITLES[idx][0]
-    time_e = CORRECTED_TIME_SUBTITLES[idx][1]
-    text = SUBTITLES[idx][2]
-    CORRECTED_TIME_SUBTITLES[idx] = (time_s, time_e, text)
-
 output_path = os.path.join(os.getcwd(), 'subtitle_samples', 'SYNC-%s'%(CHOSEN_SRT))
 open(output_path, 'wb').write(strp.format_ms(CORRECTED_TIME_SUBTITLES))
 print '\nEnd of synchronization...'
