@@ -5,7 +5,7 @@ import srt_parser as srtp
 
 class silence_detector():
     
-    def detect_silence(self, audio_filename, noise_tolerance = 0.12, silence_duration = 0.5, max_duration = None, delta = 0.35):
+    def detect_silence(self, audio_filename, noise_tolerance = 0.12, silence_duration = 0.5, max_duration = None, delta = 0.25):
         '''
             Detects periods of silence in the audio file.
 
