@@ -11,7 +11,7 @@ class speech_recognition_manager():
             Returns a list containing timestamped texts related to each audio file provided.
 
             Args:
-                timestamped_segments(list): list of lists containing timestamps and the path to the audio file.
+                timestamped_segments(list): list of tuples containing timestamps and the path to the audio file.
                                             format: [
                                                         (1.2,1.4,'audio_samples\\trimmed\\audio_filename\\audio_filename_1.wav'),
                                                         (2.0,2.3,'audio_samples\\trimmed\\audio_filename\\audio_filename_2.wav'),
@@ -33,7 +33,7 @@ class speech_recognition_manager():
         for timestamped_segment in timestamped_segments:
             with SpeechRecognizer.WavFile(timestamped_segment[2]) as source:
                 audio = recognizer.record(source)
-            
+
             print "-- recognizing " + timestamped_segment[2]
             for times in range(0,2):
                 try:
@@ -43,13 +43,32 @@ class speech_recognition_manager():
                     if times == 1 :
                         print("Could not understand audio")
 
-            
-            timestamped_texts.append((timestamped_segment[0], timestamped_segment[1], unicode(transcription)))
+            if transcription != '':
+                timestamped_texts.append((timestamped_segment[0], timestamped_segment[1], unicode(transcription)))
             transcription = ''
 
         return timestamped_texts
 
-    def translate(self, timestamped_segments, from_language = 'en', to_language = 'pt'):
+    def translate(self, timestamped_segments, from_language = 'pt', to_language = 'en'):
+        '''
+            Returns a list containing timestamped translations of the provided segments.
+
+            Args:
+                timestamped_segments(list): list of tuples containing timestamps and some text.
+                                            format: [
+                                                        (1.2,1.4,'Ei! Como voce vai?'),
+                                                        (2.0,2.3,'Eu vou bem, obrigado!'),
+                                                        and so on.
+                                                    ]
+
+            Returns:
+                list of tuples containing timestamps and the translations.
+                format: [
+                            (1.2,1.4,'Hey How are you'),
+                            (2.0,2.3,'I'm fine thanks'),
+                            and so on.
+                        ]
+        '''
         timestamped_translations = []
         translator = Translator(from_lang = from_language, to_lang = to_language)
         translation = u''
