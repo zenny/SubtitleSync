@@ -104,7 +104,17 @@ class srt_parser():
 
         return map(parse_block, 
                    open(file).read().strip().replace('\r', '').split('\n\n'))
+    
+    def parse_ms(self, file):
+        def parse_block(block):
+            lines   = block.split('\n')
+            TIMECODE_SEP    = re.compile('[ \->]*')
+            tc1, tc2= map(self.TC, TIMECODE_SEP.split(lines[1]))
+            txt     = '\n'.join(lines[2:])
+            return (tc1.ms, tc2.ms, txt)
 
+        return map(parse_block, 
+                   open(file).read().strip().replace('\r', '').split('\n\n'))
 
     def format(self, ls):
         def format_block(no, block):
@@ -112,7 +122,13 @@ class srt_parser():
             return '\n'.join(['%d' % no, '%s --> %s' % (tc1, tc2), txt])
 
         return '\n\n'.join(map(format_block, range(1, len(ls)+1), ls))
+    
+    def format_ms(self, ls):
+        def format_block(no, block):
+            ms1, ms2, txt   = block
+            return '\n'.join(['%d' % no, '%s --> %s' % (self.TC(ms1), self.TC(ms2)), txt])
 
+        return '\n\n'.join(map(format_block, range(1, len(ls)+1), ls))
 
 
     #################################################

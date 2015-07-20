@@ -1,30 +1,5 @@
 import os
-import tools.jellyfish as jf
-
-# threshold for jaro winkler distance
-jw_threshold = 0.8
-factors = [1, 1.2, 1.5, 2]
-
-# Return 1 if sentences are the same and 0 if they are completely different
-def sentence_distance( str1, str2, jw_threshold ):
-    distance = 0
-    count = 0
-    last_matches = 0
-    list_w1 = str1.split(' ')
-    list_w2 = str2.split(' ')
-    for w1 in list_w1:
-        word_dist = map( lambda w2 : jf.jaro_winkler(w1.lower(),w2.lower()), list_w2)        
-        val = max(word_dist)
-        length = len(w1) * factors[last_matches]
-        if val > jw_threshold:
-            distance += val * length
-            count += length
-            last_matches = min(3,last_matches+1)
-        else :
-            count += length / 2.0
-            last_matches = max(0,last_matches-1)
-    distance /= count
-    return distance
+from tools.matching_manager import matching_manager
 
 # Frase original do arquivo srt
 str1 = u"Olhe, eu sei que alguma garota vai ser sortuda... ...de se tornar a senhora Barry Finkel."
@@ -35,48 +10,31 @@ str2 = u"Eu sei que algumas garotas vai para ser uma sorte incrivel para se torn
 str3 = u"Falou com Barry? Nao consigo parar de sorrir. Percebi. Parece que voce dormiu com um cabide na boca."
 str4 = u"Voce se casou quando tinha, sei la, oito? Bem vindo de volta ao mundo! Pegue uma colher!"
 
-print sentence_distance(str1, str2, jw_threshold)
-print sentence_distance(str1, str3, jw_threshold)
-print sentence_distance(str1, str4, jw_threshold)
+mm = matching_manager()
+
+print mm.sentence_distance(str1, str2)
+print mm.sentence_distance(str1, str3)
+print mm.sentence_distance(str1, str4)
 
 print ""
-
-# extraido do audio 
-sen1 = [u"Nao ha nada para contar", 
-        u"Mamae que vai sair com um cara que tem que haver algo de errado com eles", 
-        u"Centro de mesa com o que ele fala, porque nao quero que ela para passar o que passei com Carl",
-        u"Relaxem. Nao e nem um encontro."]
         
 # extraido das legendas
-sen2 = [u"Nao ha nada para contar! Ele e so um cara do trabalho!",
-        u"Voce esta saindo com esse cara!",
-        u"Deve ter alguma coisa errada com ele!",
-        u"Tudo bem, Joey, vai com calma.",
-        u"Entao, ele e corcunda? Corcunda e careca?",
-        u"Espera ai, ele come giz?",
-        u"e que eu nao quero que ela passe pela mesma coisa que eu passei com o Carl!",
-        u"Isto nao e nem um dia",
-        u"bom apenas duas pessoas saindo para jantar em"]
+subs = [(3000, 3100, u"Nao ha nada para contar! Ele e so um cara do trabalho!"),
+        (4000, 4100, u"Voce esta saindo com esse cara! Deve ter alguma coisa errada com ele!"),
+        (5000, 5100, u"Tudo bem, Joey, vai com calma."),
+        (6000, 6100, u"Entao, ele e corcunda? Corcunda e careca?"),
+        (7000, 7100, u"Espera ai, ele come giz?"),
+        (8000, 8100, u"E que eu nao quero que ela passe pela mesma coisa que eu passei com o Carl!"),
+        (9000, 9100, u"Relaxem. Nao E nem um encontro."),
+        (9500, 9600, u"Sao so duas pessoas indo jantar juntas sem fazer sexo.")]
 
-# separar legendas, quebrando em novas linhas
-for ponctuation in ['!','.','?',';'] :
-    sen2 = map( lambda str : str.split(ponctuation), sen2 )
-    sen2 = reduce( lambda a, b: a+b, sen2, [])
-    sen2 = filter( lambda a: len(a) > 0, sen2)
-
-#concatenando legendas
-sen3 = map(lambda i : sen2[i] + " " + sen2[i+1], range(0,len(sen2)-1))
-sen2 += sen3
-        
-for w1 in sen1:
-    mapa = map( lambda w2 : sentence_distance(w1,w2, jw_threshold), sen2)
-    idx = [i for i, j in enumerate(mapa) if abs(j - max(mapa)) < 0.05 ]
-    print "INDEXES = ", idx, " BEST DISTANCE = ", mapa[idx[0]]
-    print "========> ", w1
-    print "MATCH ==> ", sen2[idx[0]]    
-    for i in range(1,len(idx)):
-        print "TALVEZ => ", sen2[idx[i]]
-    print ""
+# extraido do audio 
+trans = [(1000, 1100, u"Nao ha nada para contar"),
+        (1500, 1600, u"Mamae que vai sair com um cara que tem que haver algo de errado com eles"), 
+        (2000, 2100, u""), #could not transcript
+        (2500, 2600, u"Centro de mesa com o que ele fala, porque nao quero que ela para passar o que passei com Carl"),
+        (3000, 3100, u"Isto nao e nem um dia"),
+        (3500, 3500, u"bom apenas duas pessoas saindo para jantar em")]
     
-    
+print mm.match_subs_trans(subs, trans)
 

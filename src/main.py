@@ -1,14 +1,17 @@
 import os
 import sys
+import copy
 from tools.audio_manager import audio_manager
 from tools.video_manager import video_manager
 from tools.srt_parser import srt_parser
 from tools.silence_detector import silence_detector
 from tools.speech_recognition_manager import speech_recognition_manager
+from tools.matching_manager import matching_manager
 
-##########################
+####################################################
 #Choose video and subtitle
-##########################
+####################################################
+
 VIDEO_FILES = os.listdir(os.path.join(os.getcwd(), 'video_samples'))
 SRT_FILES = os.listdir(os.path.join(os.getcwd(), 'subtitle_samples'))
 i = 1
@@ -36,51 +39,78 @@ if ((not CHOSEN_VIDEO.endswith('.mp4'))
     sys.exit(0)
 #END
 
-##########################
+####################################################
 #Converting from video to audio
-##########################
+####################################################
+
 print '\nExtracting audio...'
 v_m = video_manager(os.path.join('video_samples', CHOSEN_VIDEO))
 AUDIO_FILE = v_m.get_audio_from_video()
 print 'Done.'
 #END
 
-##########################
+####################################################
 #Reading .srt file
-##########################
+####################################################
+
 print '\nReading subtitles...'
 strp = srt_parser()
-SUBTITLES = strp.parse(os.path.join('subtitle_samples', CHOSEN_SRT))
+SUBTITLES = strp.parse_ms(os.path.join('subtitle_samples', CHOSEN_SRT))
 print 'Read ' + str(len(SUBTITLES)) + ' subtitles.'
 #END
 
-##########################
+####################################################
 #Splitting audio file on silence
-##########################
+####################################################
 print '\nDetecting speech segments...'
 s_d = silence_detector()
 MAP_INTERVALS = s_d.split_on_silence(AUDIO_FILE)
 print 'Found ' + str(len(MAP_INTERVALS)) + ' possible segments.'
 #END
 
-##########################
-#Transcripting segments
-##########################
+####################################################
+#Transcripting audio speech segments
+####################################################
+
 print '\nTranscripting speech segments...'
 s_r_m = speech_recognition_manager()
-TIMESTAMPED_TEXTS = s_r_m.speech_to_text(MAP_INTERVALS)
-print str(len(TIMESTAMPED_TEXTS)) + ' out of ' + str(len(MAP_INTERVALS)) + ' successful transcriptions.'
-for timestamped_text in TIMESTAMPED_TEXTS:
+TIMESTAMPED_TRANSCRIPTIONS = s_r_m.speech_to_text(MAP_INTERVALS)
+print str(len(TIMESTAMPED_TRANSCRIPTIONS)) + ' out of ' + str(len(MAP_INTERVALS)) + ' successful transcriptions.'
+for timestamped_text in TIMESTAMPED_TRANSCRIPTIONS:
     print timestamped_text
 #END
 
-##########################
-#Translating subtitles
-##########################
+####################################################
+#Translating subtitles text
+####################################################
+
 print '\nTranslating subtitles...'
-TRANSLATED_SUBTITLES = s_r_m.translate(SUBTITLES, from_language = 'pt', to_language = 'en')
-print str(len(TRANSLATED_SUBTITLES)) + ' out of ' + str(len(SUBTITLES)) + ' successful translations.'
+TRANSLATED_SUBTITLES = s_r_m.translate(copy.deepcopy(SUBTITLES), from_language = 'pt', to_language = 'en')
+print '\n' + str(len(TRANSLATED_SUBTITLES)) + ' out of ' + str(len(SUBTITLES)) + ' successful translations.'
 for timestamped_sub in TRANSLATED_SUBTITLES:
     print timestamped_sub
 #END
 
+####################################################
+#Matching subtitles with speech segments transcriptions
+####################################################
+print '\nMatching subtitles and transcriptions...'
+m_m = matching_manager()
+CORRECTED_TIME_SUBTITLES = m_m.match_subs_trans(TRANSLATED_SUBTITLES, TIMESTAMPED_TRANSCRIPTIONS)
+#END
+
+####################################################
+#Writing results
+####################################################
+print '\nWriting synchronized subtile in file...'
+# get original subtitle text
+for idx in range(len(SUBTITLES)):
+    time_s = CORRECTED_TIME_SUBTITLES[idx][0]
+    time_e = CORRECTED_TIME_SUBTITLES[idx][1]
+    text = SUBTITLES[idx][2]
+    CORRECTED_TIME_SUBTITLES[idx] = (time_s, time_e, text)
+
+output_path = os.path.join(os.getcwd(), 'subtitle_samples', 'SYNC-%s'%(CHOSEN_SRT))
+open(output_path, 'wb').write(strp.format_ms(CORRECTED_TIME_SUBTITLES))
+print '\nEnd of synchronization...'
+#END

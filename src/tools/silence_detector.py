@@ -1,9 +1,11 @@
 import os
 import subprocess
 import re
+import srt_parser as srtp
 
 class silence_detector():
-    def detect_silence(self, audio_filename, noise_tolerance = 0.12, silence_duration = 0.5, max_duration = None):
+    
+    def detect_silence(self, audio_filename, noise_tolerance = 0.12, silence_duration = 0.5, max_duration = None, delta = 0.35):
         '''
             Detects periods of silence in the audio file.
 
@@ -44,11 +46,11 @@ class silence_detector():
 
             for idx in range(0,len(tokens)) :
                 if tokens[idx] == "silence_start:" :
-                    end_audio.append(float(tokens[idx+1]))
+                    end_audio.append(float(tokens[idx+1]) + delta)
                 if tokens[idx] == "silence_end:" :
-                    start_audio.append(float(tokens[idx+1]))
+                    start_audio.append(float(tokens[idx+1]) - delta )
                 if tokens[idx] == "Duration:" :
-                    total_time = float(tokens[idx+1].split(":")[2])
+                    total_time = float(tokens[idx+1].split(":")[2]) + delta
 
             end_audio.append(total_time)
 
@@ -83,19 +85,24 @@ class silence_detector():
 
         intervals = self.detect_silence(audio_filename)
         map = []
+        
         for idx in range(0,len(intervals)):
             start = intervals[idx][0]
             end = intervals[idx][1]
             duration = end - start
 
+            output_path = os.path.join('audio_samples', 'trimmed', output_filename, output_filename)
             trim_command = "sox {0} {1}_{2}.wav trim {3} {4}"
-            trim_command = trim_command.format(audio_filename, os.path.join('audio_samples', 'trimmed', output_filename, output_filename), idx+1, start, duration)
+            trim_command = trim_command.format(audio_filename, output_path, idx+1, start, duration)
 
             try:
                 process = subprocess.Popen(trim_command, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-                output, error = process.communicate()
-                map.append((start, end, '{0}_{1}.wav'.format(os.path.join('audio_samples', 'trimmed', output_filename, output_filename), idx+1)))
+                output, error = process.communicate()                
+                map.append((self.to_ms(start), self.to_ms(end), '{0}_{1}.wav'.format(output_path, idx+1)))
             except Exception, e:
                 print 'Exception when triming file. Reason: ' + unicode(e.message)
 
         return map
+    
+    def to_ms(self, second ):
+        return int(round(second * 1000))
