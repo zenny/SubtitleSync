@@ -62,7 +62,7 @@ print 'Read ' + str(len(SUBTITLES)) + ' subtitles.'
 ####################################################
 #Splitting audio file on silence
 ####################################################
-print '\nDetecting speech segments...'
+print '\nDetecting speech segments...\n'
 s_d = silence_detector()
 MAP_INTERVALS = s_d.split_on_silence(AUDIO_FILE)
 print 'Found ' + str(len(MAP_INTERVALS)) + ' possible segments.'
@@ -75,7 +75,7 @@ print 'Found ' + str(len(MAP_INTERVALS)) + ' possible segments.'
 print '\nTranscripting speech segments...'
 s_r_m = speech_recognition_manager()
 TIMESTAMPED_TRANSCRIPTIONS = s_r_m.speech_to_text(MAP_INTERVALS)
-print str(len(TIMESTAMPED_TRANSCRIPTIONS)) + ' out of ' + str(len(MAP_INTERVALS)) + ' successful transcriptions.'
+print "\n" + str(len(TIMESTAMPED_TRANSCRIPTIONS)) + ' out of ' + str(len(MAP_INTERVALS)) + ' successful transcriptions.\n'
 for timestamped_text in TIMESTAMPED_TRANSCRIPTIONS:
     print timestamped_text
 #END

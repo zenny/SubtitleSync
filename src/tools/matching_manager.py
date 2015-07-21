@@ -15,7 +15,7 @@ class matching_manager():
         self.sentence_distance_threshold = sentence_distance_threshold
     
     def canonize(self,str):
-        return re.sub('[.?!@#$]', '', str).lower()
+        return re.sub('[.?!@#$&123456789;]', '', str).lower()
         
     
     # Return 1 if sentences are the same and 0 if they are completely different
@@ -64,7 +64,7 @@ class matching_manager():
         # getting the best match with shortest transcription length (should change that!)
         return dists[idxs[0]], idxs[0]
     
-    def match_subs_trans(self, subs, trans, original_subs):
+    def match_subs_trans(self, subs, trans, original_subs, acceptable_near_time = 1000):
         '''
             match subtitles (subs) stream with transcriptions (trans) stream
             
@@ -75,6 +75,7 @@ class matching_manager():
         trans2 = self.concatenate_adjacent_sentences(trans)
         
         matching = []
+        # [[], [1], [1], [2], [2], [3], [4], [], [5, 6], [7], [], []]        
         
         # match subtitles to transcriptions
         for idx in range(len(subs)):
@@ -83,15 +84,21 @@ class matching_manager():
             best_dist2, best_idx2 = self.get_best_match_idx(sub, trans2)
             
             best_dist = max(best_dist1, best_dist2)
+            list_of_matches = []
             
             if best_dist >= self.sentence_distance_threshold :
                 if best_dist == best_dist1:
-                    matching.append([best_idx1])
+                    list_of_matches = [best_idx1]
                 else :
-                    matching.append([best_idx2,best_idx2+1])
+                    list_of_matches = [best_idx2,best_idx2+1]
             else:
-                matching.append([])
+                list_of_matches = []
+            
+            matching.append(list_of_matches)
+            
+            print "Matching", idx, " -> %7s"%list_of_matches, "(%.2f"%best_dist, " of certainty)"
         
+        print "\nIntermediate matching = "
         print matching
         
         # maps subtitles times to match transcriptions
@@ -99,27 +106,38 @@ class matching_manager():
             n_match = len(matching[idx])
             new_start_time = duration = 0
                         
-            if n_match == 0:
-                print "not matched"
-                if idx > 0 and len(matching[idx-1]) == 1:
-                    best_idx = matching[idx-1][0] + 1
-                elif idx > 0 and len(matching[idx-1]) == 2:
-                    best_idx = matching[idx-1][1] + 1
-                elif idx+1 < len(matching) and len(matching[idx+1]) >= 1:
-                    best_idx = matching[idx+1][0] - 1 
+            if n_match == 0:      
+                possible_idx = 0
+                
+                can_previous = idx > 0 and len(matching[idx-1]) >= 1
+                can_next = idx+1 < len(matching) and len(matching[idx+1]) >= 1
+                
+                if can_previous and can_next:
+                    #get the one with most difference in time form subtitle to transcription
+                    time_trans_prev = trans[matching[idx-1][-1]][1] - trans[matching[idx-1][0]][0]
+                    time_trans_next = trans[matching[idx+1][-1]][1] - trans[matching[idx+1][0]][0]
+                    time_sub_prev = trans[matching[idx-1][-1]][1] - trans[matching[idx-1][0]][0]
+                    time_sub_next = trans[matching[idx+1][-1]][1] - trans[matching[idx+1][0]][0]
+                    
+                    if abs(time_sub_prev - time_trans_prev) > abs(time_sub_next - time_trans_next) :
+                        possible_idx = matching[idx-1][-1] + 1
+                    else :
+                        possible_idx = matching[idx+1][0] - 1
+                elif can_previous:
+                    possible_idx = matching[idx-1][-1] + 1     
+                elif can_next:
+                    possible_idx = matching[idx+1][0] - 1
                 else :
                     #keep the same time
-                    best_idx = idx
+                    possible_idx = idx
                 
-                best_idx = max(best_idx, 0)
-                best_idx = min(best_idx, len(trans)-1)
-            else :
-                best_idx = matching[idx][0]           
+                possible_idx = max(possible_idx, 0)
+                possible_idx = min(possible_idx, len(trans)-1)
+                matching[idx] = [possible_idx]
             
-            print "idx , best_idx = ", idx, best_idx
+            best_idx = matching[idx][0] 
             
-            if idx > 0 and matching[idx-1] == matching[idx]:
-                print "handles multiple subs to one transcription"
+            if idx > 0 and len(matching[idx-1]) > 0 and len(matching[idx]) > 0 and matching[idx-1][-1] == matching[idx][0]:                
                 # handles multiple subs to one transcription
                 original_subs[idx] = (
                     original_subs[idx-1][0], #keep previous start time
@@ -128,16 +146,22 @@ class matching_manager():
                 
                 original_subs[idx-1] = None
             else :
+                #handles normal case
                 sub = subs[idx]
                 new_start_time = trans[best_idx][0]
-                duration = sub[1] - sub[0]
-                print "handles normal case = ", new_start_time, duration
+                duration = sub[1] - sub[0]                
                 original_subs[idx] = (new_start_time, new_start_time + duration, original_subs[idx][2])        
             
+            #separete subtitles with intersecting time
+            if idx > 0 and original_subs[idx-1] is not None and original_subs[idx-1][1] > original_subs[idx][0]:
+                if original_subs[idx-1][1] - original_subs[idx][0] <= acceptable_near_time:                    
+                    time_diff = original_subs[idx-1][1] - original_subs[idx][0]
+                    prev = original_subs[idx-1]
+                    cur = original_subs[idx]
+                    
+                    original_subs[idx-1] = (prev[0], prev[1] - int(time_diff/2) - 2, prev[2])
+                    original_subs[idx] = (cur[0] + int(time_diff/2) + 2, cur[1], cur[2])     
+    
         return filter( lambda x: x is not None , original_subs)
             
             
-            
-    
-    
-
