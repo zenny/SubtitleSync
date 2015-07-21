@@ -135,13 +135,13 @@ class matching_manager():
                 possible_idx = min(possible_idx, len(trans)-1)
                 matching[idx] = [possible_idx]
             
-            best_idx = matching[idx][0] 
+            best_idx = matching[idx][0]
             
             if idx > 0 and len(matching[idx-1]) > 0 and len(matching[idx]) > 0 and matching[idx-1][-1] == matching[idx][0]:                
                 # handles multiple subs to one transcription
                 original_subs[idx] = (
                     original_subs[idx-1][0], #keep previous start time
-                    trans[best_idx][1], #change to new final time
+                    trans[matching[idx][-1]][1], #change to new final time
                     original_subs[idx-1][2] + "\n" + original_subs[idx][2]) #concatenate texts
                 
                 original_subs[idx-1] = None
