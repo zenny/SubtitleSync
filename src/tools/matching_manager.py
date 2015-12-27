@@ -16,7 +16,6 @@ class matching_manager():
     
     def canonize(self,str):
         return re.sub('[.?!@#$&123456789;]', '', str).lower()
-        
     
     # Return 1 if sentences are the same and 0 if they are completely different
     def sentence_distance(self, sen1, sen2):
